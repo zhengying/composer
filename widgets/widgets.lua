@@ -4,6 +4,7 @@ function TextView(text, ...)
 	assert(type(text) == "string", "text is required")
 
 	local textView = UI.TextView()
+	textView.addText(text)
 	return Elem(textView, ...)
 end
 

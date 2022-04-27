@@ -91,6 +91,18 @@ function Layout:layoutChildren(rect)
 	error("implementation required by subclasses")
 end
 
+function Layout:draw(...)
+	for _, child in ipairs(self.children) do
+		child:draw(...)
+	end
+end
+
+function Layout:update(dt)
+	for _, child in ipairs(self.children) do
+		child:update(dt)
+	end
+end
+
 function Layout:__tostring()
 	return F.describe("Layout", self)
 end
@@ -176,7 +188,7 @@ function HStack:expandChildren()
 end
 
 function HStack:layoutChildren(rect)
-	local x, y, h = rect.x, rect.y, 0
+	local x, y = rect.x, rect.y
 	local ch_widths = {}
 	for _, child in ipairs(self.children) do
 		ch_widths[#ch_widths + 1] = { child.exp_size.x, child.stretch.x }
@@ -189,6 +201,7 @@ function HStack:layoutChildren(rect)
 	local results = F.zip(self.children, ch_widths)
 	for _, result in ipairs(results) do
 		local ch, w = unpack(result)
+		local h
 
 		if ch.stretch.y == 1 then 
 			h = rect.h
@@ -235,7 +248,7 @@ function VStack:expandChildren()
 end
 
 function VStack:layoutChildren(rect)
-	local x, y, w = rect.x, rect.y, 0
+	local x, y = rect.x, rect.y
 	local ch_heights = {}
 	for _, child in ipairs(self.children) do
 		ch_heights[#ch_heights + 1] = { child.exp_size.y, child.stretch.y }
@@ -248,7 +261,7 @@ function VStack:layoutChildren(rect)
 	local results = F.zip(self.children, ch_heights)
 	for _, result in ipairs(results) do
 		local ch, h = unpack(result)
-
+		local w
 		if ch.stretch.x ~= 0 then 
 			w = rect.w
 		else
@@ -257,6 +270,12 @@ function VStack:layoutChildren(rect)
 		ch.rect = Rect(x, y, w, h - 1)
 
 		y = y + h
+	end
+end
+
+function VStack:update(dt)
+	for _, child in ipairs(self.children) do
+		child:update(dt)
 	end
 end
 
@@ -304,6 +323,14 @@ end
 
 function Elem:__tostring()
 	return F.describe("Elem", self)
+end
+
+function Elem:draw(...)
+	self.widget:draw(...)
+end
+
+function Elem:update(dt)
+	self.widget:update(dt)
 end
 
 setmetatable(Elem, {

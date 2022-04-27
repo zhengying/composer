@@ -28,22 +28,18 @@ local registry = {}
 
 -- internal function to recursively retrieve a list of elements from a parent
 -- element
-local function getElementsAndWidgets(parent, elements, widgets)
+local function getElements(parent, elements)
 	elements = elements or {}
-	widgets = widgets or {}
 
 	for _, child in ipairs(parent.children) do
 		if getmetatable(child) == layout.Elem then
 			elements[#elements + 1] = child
-			if child.widget ~= nil then
-				widgets[#widgets + 1] = child.widget
-			end
 		else
-			getElementsAndWidgets(child, elements, widgets)
+			getElements(child, elements)
 		end		
 	end
 
-	return elements, widgets
+	return elements
 end
 
 -- add widgets at given path to the internal control registry
@@ -118,8 +114,7 @@ local function load(path, is_debug)
 	local hud = hud_contents()
 
 	-- create a list of elements for use with the eachElement() function
-	-- create a list of wdgets
-	local elements, widgets = getElementsAndWidgets(hud)
+	local elements = getElements(hud)
 
 	hud.resize = function(w, h, fn)
 		fn = fn or function() end
@@ -141,23 +136,6 @@ local function load(path, is_debug)
 	hud.getElement = function(id, fn)
 		local e = elements_by_id[id]
 		if e then fn(e) end
-	end
-
-	hud.eachElement = function(fn)
-		for _, e in ipairs(elements) do
-			fn(e)
-		end
-	end
-
-	hud.getWidget = function(element_id, fn)
-		local e = elements_by_id[element_id]
-		if e and e.widget ~= nil then fn(e.widget) end
-	end
-
-	hud.eachWidget = function(fn)
-		for _, w in ipairs(widgets) do
-			fn(w)
-		end
 	end
 
 	return hud
